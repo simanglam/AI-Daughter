@@ -12,6 +12,8 @@ import glob
 import os, random
 import copy
 import traceback
+os.environ["SDL_AUDIODRIVER"] = "alsa"
+
 
 from elevenlabs import generate, play, set_api_key
 

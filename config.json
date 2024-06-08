@@ -6,10 +6,10 @@
   },
   "api_ip": "127.0.0.1",
   "api_port": 8082,
-  "platform": "talk",
-  "room_display_id": "278333",
-  "chat_type": "reread",
-  "need_lang": "none",
+  "platform": "youtube",
+  "room_display_id": "M6HdC8Bs8OI",
+  "chat_type": "chatgpt",
+  "need_lang": "zh",
   "before_prompt": "请简要回复:",
   "after_prompt": "",
   "comment_template": {
@@ -36,7 +36,7 @@
     "text_split_enable": true,
     "normal_interval": 0.5,
     "out_path": "out",
-    "player": "pygame"
+    "player": "audio_player"
   },
   "audio_player": {
     "api_ip_port": "http://127.0.0.1:5600"
@@ -55,10 +55,10 @@
     }
   },
   "twitch": {
-    "token": "oauth:xxxx",
-    "user": "love_ikaros",
-    "proxy_server": "127.0.0.1",
-    "proxy_port": "10809"
+    "token": "oauth:",
+    "user": "",
+    "proxy_server": "",
+    "proxy_port": ""
   },
   "read_username": {
     "enable": false,
@@ -91,7 +91,9 @@
     "before_filter_str": [
       "#"
     ],
-    "after_filter_str": [],
+    "after_filter_str": [
+      "#"
+    ],
     "badwords": {
       "enable": true,
       "discard": false,
@@ -147,18 +149,18 @@
     "lowest_price": 0.1
   },
   "live2d": {
-    "enable": false,
-    "port": 12345,
-    "name": "Hiyori"
+    "enable": true,
+    "port": 8888,
+    "name": "koharu"
   },
   "openai": {
-    "api": "https://api.openai.com/v1",
+    "api": "http://localhost:8080/v1",
     "api_key": [
-      "替换为你的api-key"
+      "dsa"
     ]
   },
   "chatgpt": {
-    "model": "gpt-3.5-turbo-0613",
+    "model": null,
     "temperature": 0.9,
     "max_tokens": 4096,
     "top_p": 1.0,
@@ -196,7 +198,7 @@
     "max_new_tokens": 250,
     "history_enable": true,
     "history_max_len": 20,
-    "preset": "现在你正在blibili进行直播。"
+    "preset": "请扮演一个AI虚拟主播。不要回答任何敏感问题！不要强调你是主播，只需要回答问题！"
   },
   "sparkdesk": {
     "type": "api",
@@ -265,7 +267,7 @@
     "knowledge_base": {
       "knowledge_base_name": "ikaros",
       "top_k": 3,
-      "score_threshold": 1,
+      "score_threshold": 1.0,
       "stream": false,
       "model_name": "chatglm3-6b-int4",
       "temperature": 0.7,
@@ -377,7 +379,9 @@
     "app_secret": "",
     "api_ip_port": "http://127.0.0.1:8777",
     "user_id": "zzp",
-    "kb_ids": ["KB938fb10c8a924530abf1754ea620b7cd"],
+    "kb_ids": [
+      "KB938fb10c8a924530abf1754ea620b7cd"
+    ],
     "history_enable": true,
     "history_max_len": 300
   },
@@ -400,14 +404,14 @@
   },
   "local_qa": {
     "text": {
-      "enable": true,
+      "enable": false,
       "type": "json",
       "file_path": "data/本地问答库.json",
       "similarity": 0.8,
       "username_max_len": 10
     },
     "audio": {
-      "enable": true,
+      "enable": false,
       "file_path": "out/本地问答音频/",
       "similarity": 0.5
     }
@@ -480,8 +484,8 @@
     "wav_format": "wav"
   },
   "edge-tts": {
-    "voice": "zh-CN-XiaoyiNeural",
-    "rate": "+0%",
+    "voice": "zh-TW-HsiaoChenNeural",
+    "rate": "+20%",
     "volume": "+0%"
   },
   "elevenlabs": {
@@ -564,7 +568,7 @@
     "api_ip_port": "http://127.0.0.1:9988",
     "voice": "cn-nan.wav",
     "language": "zh-cn",
-    "speed": 1
+    "speed": 1.0
   },
   "azure_tts": {
     "subscription_key": "",
@@ -606,7 +610,9 @@
     "enable": true,
     "similarity": 0.5,
     "start_cmd": [
-      "点歌 ",
+      "唱首",
+      "唱个",
+      "点歌",
       "唱首",
       "唱个"
     ],
@@ -659,23 +665,23 @@
       {
         "file_path": "data/copywriting/",
         "audio_path": "out/copywriting/",
+        "continuous_play_num": 2,
+        "max_play_time": 10.0,
         "play_list": [
           "test.wav",
           "伊卡日语介绍.wav",
           "吐槽.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 10.0
+        ]
       },
       {
         "file_path": "data/copywriting2/",
         "audio_path": "out/copywriting2/",
+        "continuous_play_num": 2,
+        "max_play_time": 3.0,
         "play_list": [
           "test.wav",
           "test2.wav"
-        ],
-        "continuous_play_num": 2,
-        "max_play_time": 3.0
+        ]
       }
     ],
     "audio_interval": 5.0,
@@ -688,9 +694,9 @@
   },
   "talk": {
     "key_listener_enable": true,
-    "device_index": "1",
+    "device_index": null,
     "no_recording_during_playback": true,
-    "no_recording_during_playback_sleep_interval": 1,
+    "no_recording_during_playback_sleep_interval": 1.0,
     "username": "主人",
     "type": "google",
     "continuous_talk": false,
