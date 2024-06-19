@@ -1,7 +1,7 @@
 # 导入所需的库
 import re, random, requests, json
 import time
-import os
+import os, glob
 import logging
 from datetime import datetime
 from datetime import timedelta
@@ -25,9 +25,78 @@ from pypinyin import pinyin, Style
 import pyaudio
 
 
+
+
+
 class Common:
     def __init__(self):  
         self.count = 1
+
+    """
+    数据校验
+    """
+    # 检测是否为纯数字
+    def is_pure_number(self, text):
+        """检测是否为纯数字
+
+        Args:
+            text (str): 待检测的文本
+
+        Returns:
+            bool: 是否为纯数字
+        """
+        return text.isdigit()
+
+
+    # 是否是url
+    def is_url_check(self, url):
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+        
+    # 是否是IP地址
+    def is_valid_ip(self, ip):
+        import ipaddress
+
+        try:
+            ipaddress.ip_address(ip)
+            return True
+        except ValueError:
+            return False
+
+    # 是否是端口
+    def is_valid_port(self, port):
+        try:
+            port_num = int(port)
+            return 0 < port_num <= 65535
+        except ValueError:
+            return False
+
+    # 识别操作系统
+    def detect_os(self):
+        """
+        识别操作系统
+        """
+        import platform
+
+        system = platform.system()
+        if system == 'Linux':
+            return 'Linux'
+        elif system == 'Windows':
+            return 'Windows'
+        elif system == 'Darwin':
+            return 'MacOS'
+        
+        # 如果platform模块无法识别，则尝试使用os模块
+        # system = os.name
+        # if system == 'posix':
+        #     return '可能是Linux或MacOS'
+        # elif system == 'nt':
+        #     return 'Windows'
+
+        return '未知系统'
 
     """
     数字操作
@@ -130,6 +199,11 @@ class Common:
         return random_float
     
 
+    def find_keys_by_value(self, dictionary, target_value):
+        # 返回一个包含所有具有指定值的键的列表
+        return [key for key, value in dictionary.items() if value == target_value]
+
+
     """
                                                                                                               
                    .,]`                    ]]]`            ,]]`                      .`    .]`                
@@ -147,6 +221,47 @@ class Common:
                                                                                                               
 
     """
+
+    # 生成hash字符串 用于gradio请求
+    def generate_session_hash(self, length: int=11):
+        import hashlib
+        import string
+
+        characters = string.ascii_letters + string.digits
+        random_string = ''.join(random.choice(characters) for i in range(length))
+        hash_object = hashlib.sha1(random_string.encode())
+        session_hash = hash_object.hexdigest()[:length]
+
+        return session_hash
+
+    # 将字符串中的数字转换成中文
+    def convert_digits_to_chinese(self, input_str: str):
+        """将字符串中的数字转换成中文
+
+        Args:
+            input_str (str): 待转换的字符串
+
+        Returns:
+            str: 转换后的字符串
+        """
+        # 定义阿拉伯数字到中文数字的映射
+        digit_to_chinese = {
+            '0': '零',
+            '1': '一',
+            '2': '二',
+            '3': '三',
+            '4': '四',
+            '5': '五',
+            '6': '六',
+            '7': '七',
+            '8': '八',
+            '9': '九'
+        }
+
+        # 遍历输入字符串并替换数字为中文数字
+        result = ''.join(digit_to_chinese.get(char, char) for char in input_str)
+        
+        return result
 
     # 删除多余单词
     def remove_extra_words(self, text="", max_len=30, max_char_len=50):
@@ -208,19 +323,6 @@ class Common:
                 return True
 
         return False
-
-
-    # 链接检测
-    def is_url_check(self, text):
-        parsed_url = urlparse(text)
-        return all([parsed_url.scheme, parsed_url.netloc])
-
-        # url_pattern = re.compile(r'(?i)((?:(?:https?|ftp):\/\/)?[^\s/$.?#]+\.[^\s>]+)')
-
-        # if url_pattern.search(text):
-        #     return True
-        # else:
-        #     return False
 
 
     # 语言检测 TODO:有内存泄漏风险
@@ -547,6 +649,29 @@ class Common:
         return template
 
 
+    # [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+    def brackets_text_randomize(self, text: str):
+        """
+        [1|2]括号语法随机获取一个值，返回取值完成后的字符串
+        Args:
+            text (str): 原始字符串
+
+        Returns:
+            str: 最终字符串
+        """
+        # 查找所有括号内的内容
+        brackets_content = re.findall(r'\[([^\]]*)\]', text)
+        
+        for content in brackets_content:
+            # 分割每个括号内的选项
+            choices = content.split('|')
+            # 从选项中随机选择一个
+            random_choice = random.choice(choices)
+            # 替换文本中的括号内容
+            text = text.replace(f'[{content}]', random_choice, 1)
+        
+        return text
+
     """
     
             .@@@             @@@        @@^ =@@@@@@@@    /@@ /@@              =@@@@@*,@@\]]]]  ,@@@@@@@@@@@@*                      .@@@         @@/.\]`@@@       =@@\]]]]]]]   =@@..@@@@@@@@@   =@@\   /@@^           
@@ -634,6 +759,25 @@ class Common:
 
         return file_paths
 
+    # 获取指定路径下指定拓展名的文件名列表
+    def get_specify_extension_names_in_folder(self, path: str, extension: str):
+        """
+        获取指定路径下指定拓展名的文件名列表
+
+        Parameters:
+            path (str): 指定的路径
+            extension (str): 指定的拓展名（例如：.json、.txt、.jpg等）
+
+        Returns:
+            list: 文件名列表
+        """
+        if not os.path.exists(path):
+            logging.error(f"路径 '{path}' 不存在")
+            return []
+
+        file_names = glob.glob(os.path.join(path, f"*{extension}"))
+        return [os.path.basename(file_name) for file_name in file_names]
+
     def remove_extension_from_list(self, file_name_list):
         """
         将包含多个带有拓展名的文件名的列表中的拓展名去掉，只返回文件名部分组成的新列表
@@ -711,6 +855,7 @@ class Common:
             return None
 
 
+
     """
                                                                                                  
               .]]@@              .@]]       @@@@        O@@`  ,]]]]]]]]]]]].      /]]   /@]`                  
@@ -727,13 +872,21 @@ class Common:
        ,@/[            .[\@`    =@@@        @@@@      \@@@`  ,`    @@@^   .[    =@@@.     @@@^             
 
     """
+    def ensure_directory_exists(self, path):
+        # 检查路径是否存在
+        if not os.path.exists(path):
+            # 如果路径不存在，创建它
+            os.makedirs(path)
+            logging.info(f"路径已创建：{path}")
 
     # 写入内容到指定文件中 返回T/F
     def write_content_to_file(self, file_path, content, write_log=True):
         try:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(content)
-            logging.info(f"写入文件:{file_path}，内容：【{content}】")
+
+            if write_log == True:
+                logging.info(f"写入文件:{file_path}，内容：【{content}】")
 
             return True
         except IOError as e:
@@ -899,9 +1052,9 @@ class Common:
         headers = {'Content-Type': 'application/json'}
 
         try:
-            if method == 'GET':
+            if method in ['GET', 'get']:
                 response = requests.get(url, headers=headers, timeout=timeout)
-            elif method == 'POST':
+            elif method in ['POST', 'post']:
                 response = requests.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout)
             else:
                 raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
@@ -914,12 +1067,66 @@ class Common:
                 result = response.json()
             else:
                 result = response.content
+                # 使用 'utf-8' 编码来解码字节串
+                result = result.decode('utf-8')
 
             return result
 
         except requests.exceptions.RequestException as e:
             logging.error(traceback.format_exc())
             logging.error(f"请求出错: {e}")
+            return None
+
+    async def send_async_request(self, url, method='GET', json_data=None, resp_data_type="json", timeout=60):
+        """
+        发送异步 HTTP 请求并返回结果
+
+        Parameters:
+            url (str): 请求的 URL
+            method (str): 请求方法，'GET' 或 'POST'
+            json_data (dict): JSON 数据，用于 POST 请求
+            resp_data_type (str): 返回数据的类型（json | content）
+            timeout (int): 请求超时时间
+
+        Returns:
+            dict|str: 包含响应的 JSON数据 | 字符串数据
+        """
+        import aiohttp
+
+        headers = {'Content-Type': 'application/json'}
+
+        try:
+            # 创建 aiohttp.ClientSession
+            async with aiohttp.ClientSession() as session:
+                if method in ['GET', 'get']:
+                    async with session.get(url, headers=headers, timeout=timeout) as response:
+                        # 检查请求是否成功
+                        response.raise_for_status()
+
+                        if resp_data_type == "json":
+                            # 解析响应的 JSON 数据
+                            result = await response.json()
+                        else:
+                            result = await response.read()
+
+                elif method in ['POST', 'post']:
+                    async with session.post(url, headers=headers, data=json.dumps(json_data), timeout=timeout) as response:
+                        # 检查请求是否成功
+                        response.raise_for_status()
+
+                        if resp_data_type == "json":
+                            # 解析响应的 JSON 数据
+                            result = await response.json()
+                        else:
+                            result = await response.read()
+
+                else:
+                    raise ValueError('无效 method. 支持的 methods 为 GET 和 POST.')
+
+                return result
+
+        except aiohttp.ClientError as e:
+            logging.error("请求出错: %s", e)
             return None
 
     # 请求web字幕打印机
@@ -998,10 +1205,11 @@ class Common:
 
                     logging.info("OpenAI API key 可用")
 
-                    return True
+                    return {"code": 200, "msg": "OpenAI API key 可用"}
                 except Exception as e:
+                    logging.error(traceback.format_exc())
                     logging.error(f"OpenAI API key 不可用: {e}")
-                    return False
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         else:
             import openai
             from packaging import version
@@ -1055,9 +1263,178 @@ class Common:
                     logging.debug(resp)
                     logging.info("OpenAI API key 可用")
 
-                    return True
+                    return {"code": 200, "msg": "OpenAI API key 可用"}
                 except openai.OpenAIError as e:
                     logging.error(f"OpenAI API key 不可用: {e}")
-                    return False
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
+                except Exception as e:
+                    logging.error(traceback.format_exc())
+                    logging.error(f"OpenAI API key 不可用: {e}")
+                    return {"code": -1, "msg": f"OpenAI API key 不可用: {e}"}
         
         return check_useful(data_json)
+
+
+    """
+    图像操作
+    """
+    # 获取所有有标题的窗口对象
+    def list_visible_windows(self):
+        """获取所有有标题的窗口对象
+
+        Returns:
+            list: 获取所有有标题的窗口名列表
+        """
+        if self.detect_os() == "Windows":
+            import pygetwindow as gw
+
+            windows = gw.getWindowsWithTitle('')
+            
+            window_titles = []
+
+            # 打印每个窗口的标题
+            for win in windows:
+                if win.title:  # 确保窗口有标题
+                    window_titles.append(win.title)
+        else:
+            return []
+
+        return window_titles
+
+    
+
+    def capture_window_by_title(self, img_save_path: str, window_title: str):
+        """根据窗口名截图（截图窗口不能被遮挡，必须前置窗口）
+
+        Args:
+            img_save_path (str): 图片保存路径
+            window_title (str): 窗口标题
+
+        Returns:
+            str: 图片保存路径含文件名
+        """
+        try:
+            if self.detect_os() == "Windows":
+                import pygetwindow as gw
+                import pyautogui
+
+                # 使用窗口标题查找窗口
+                win = gw.getWindowsWithTitle(window_title)[0]  # 获取第一个匹配的窗口
+                if win:
+                    # 获取窗口的位置和大小
+                    left, top = win.left, win.top
+                    width, height = win.width, win.height
+
+                    # 使用pyautogui捕获指定区域的截图
+                    screenshot = pyautogui.screenshot(region=(left, top, width, height))
+
+                    # 判断路径存在，不存在就创建
+                    self.ensure_directory_exists(img_save_path)
+
+                    # logging.debug(f"img_save_path={img_save_path}")
+                    destination_directory = os.path.abspath(img_save_path)
+                    logging.debug(f"destination_directory={destination_directory}")
+
+                    # 获取图片路径含文件名
+                    destination_path = os.path.join(destination_directory, f"{window_title}.png")
+                    logging.debug(f"destination_path={destination_path}")
+
+                    screenshot.save(destination_path)
+
+                    logging.info(f"截图已保存到：{destination_path}")
+
+                    return destination_path
+                else:
+                    logging.error(f"未找到指定的窗口：{window_title}")
+            else:
+                return None
+        except IndexError:
+            logging.error(f"未找到指定的窗口：{window_title}")
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return None
+    
+
+    """
+    摄像头相关
+    """
+
+    def list_cameras(self, max_tested=5):
+        """获取所有可用摄像头的索引
+
+        Args:
+            max_tested (int, optional): 最大检索摄像头数. Defaults to 5.
+
+        Returns:
+            list: 可用摄像头的索引列表
+        """
+        try:
+            import cv2
+
+            available_cameras = []
+            for i in range(max_tested):
+                cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)  # 尝试打开摄像头
+                if cap.isOpened():  # 检查摄像头是否成功打开
+                    available_cameras.append(i)
+                    cap.release()  # 释放摄像头
+                else:
+                    break  # 如果一个摄像头索引打不开，假设后面的都不可用
+            return available_cameras
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return []
+
+
+    def capture_image(self, img_save_path="./out/图像识别", camera_index=0):
+        try:
+            import tempfile, cv2
+
+            cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+            
+            # 检查摄像头是否成功打开
+            if not cap.isOpened():
+                logging.info(f"无法打开摄像头 索引={camera_index}")
+                return None
+
+            # 读取一帧图像
+            ret, frame = cap.read()
+            if not ret:
+                logging.error("无法获取摄像头流数据")
+                return None
+            cap.release()  # 释放摄像头
+
+            # 判断路径存在，不存在就创建
+            self.ensure_directory_exists(img_save_path)
+
+            # logging.debug(f"img_save_path={img_save_path}")
+            destination_directory = os.path.abspath(img_save_path)
+            logging.debug(f"destination_directory={destination_directory}")
+
+            # 构造文件名和保存路径
+            destination_path = os.path.join(destination_directory, f"camera_{camera_index}_{cv2.getTickCount()}")
+            logging.debug(f"destination_path={destination_path}")
+
+            # 在系统临时目录中创建一个临时文件
+            temp_dir = tempfile.gettempdir()
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.png', dir=temp_dir)
+            temp_path = temp_file.name
+            temp_file.close()  # 关闭文件，确保可以被其他进程使用
+            
+            # 保存图像
+            save_ret = cv2.imwrite(temp_path, frame)
+            if save_ret:
+                logging.info(f"图像已保存到：{temp_path}")
+            else:
+                logging.error(f"图像保存失败：{temp_path}")
+                return None
+            
+            # 将文件从临时路径移动到目标路径
+            final_path = self.move_file(temp_path, destination_path, f"camera_{camera_index}_{cv2.getTickCount()}", "png")
+            
+            return final_path
+        except Exception as e:
+            logging.error(traceback.format_exc())
+
+        return None
