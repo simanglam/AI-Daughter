@@ -156,14 +156,6 @@ def start_server():
         frames = []
         print("Recording...")
         flag = 0
-        while 1:
-            while keyboard.is_pressed('RIGHT_SHIFT'):
-                flag = 1
-                data = stream.read(CHUNK)
-                frames.append(data)
-                pressdown_num = pressdown_num + 1
-            if flag:
-                break
         print("Stopped recording.")
         stream.stop_stream()
         stream.close()
@@ -411,88 +403,7 @@ def start_server():
     def on_key_press(event):
         global do_listen_and_comment_thread, stop_do_listen_and_comment_thread_event
 
-        # 是否启用按键监听，不启用的话就不用执行了
-        if False == config.get("talk", "key_listener_enable"):
-            return
-
-        # if event.name in ['z', 'Z', 'c', 'C'] and keyboard.is_pressed('ctrl'):
-            # print("退出程序")
-
-            # os._exit(0)
-        
-        # 按键CD
-        current_time = time.time()
-        if current_time - last_pressed < cooldown:
-            return
-        
-
-        """
-        触发按键部分的判断
-        """
-        trigger_key_lower = None
-        stop_trigger_key_lower = None
-
-        # trigger_key是字母, 整个小写
-        if trigger_key.isalpha():
-            trigger_key_lower = trigger_key.lower()
-
-        # stop_trigger_key是字母, 整个小写
-        if stop_trigger_key.isalpha():
-            stop_trigger_key_lower = stop_trigger_key.lower()
-        
-        if trigger_key_lower:
-            if event.name == trigger_key or event.name == trigger_key_lower:
-                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
-            elif event.name == stop_trigger_key or event.name == stop_trigger_key_lower:
-                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
-                stop_do_listen_and_comment_thread_event.set()
-                return
-            else:
-                return
-        else:
-            if event.name == trigger_key:
-                logging.info(f'检测到单击键盘 {event.name}，即将开始录音~')
-            elif event.name == stop_trigger_key:
-                logging.info(f'检测到单击键盘 {event.name}，即将停止录音~')
-                stop_do_listen_and_comment_thread_event.set()
-                return
-            else:
-                return
-
-        # 是否启用连续对话模式
-        if config.get("talk", "continuous_talk"):
-            stop_do_listen_and_comment_thread_event.clear()
-            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(True,))
-            do_listen_and_comment_thread.start()
-        else:
-            stop_do_listen_and_comment_thread_event.clear()
-            do_listen_and_comment_thread = threading.Thread(target=do_listen_and_comment, args=(False,))
-            do_listen_and_comment_thread.start()
-
-
-    # 按键监听
-    def key_listener():
-        # 注册按键按下事件的回调函数
-        keyboard.on_press(on_key_press)
-
-        try:
-            # 进入监听状态，等待按键按下
-            keyboard.wait()
-        except KeyboardInterrupt:
-            os._exit(0)
-
-
-    # 从配置文件中读取触发键的字符串配置
-    trigger_key = config.get("talk", "trigger_key")
-    stop_trigger_key = config.get("talk", "stop_trigger_key")
-
-    if config.get("talk", "key_listener_enable"):
-        logging.info(f'单击键盘 {trigger_key} 按键进行录音喵~ 由于其他任务还要启动，如果按键没有反应，请等待一段时间')
-
-    # 创建并启动按键监听线程
-    thread = threading.Thread(target=key_listener)
-    thread.start()
-
+        return 
 
 
     # 定时任务

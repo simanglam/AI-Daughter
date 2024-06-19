@@ -12,7 +12,7 @@ import glob
 import os, random
 import copy
 import traceback
-os.environ["SDL_AUDIODRIVER"] = "alsa"
+os.environ["SDL_AUDIODRIVER"] = "pulseaudio"
 
 
 from elevenlabs import generate, play, set_api_key
@@ -71,6 +71,8 @@ class Audio:
         self.config = Config(config_path)
         self.common = Common()
         self.my_tts = MY_TTS(config_path)
+        Audio.mixer_copywriting.init()
+        Audio.mixer_normal.init()
 
         # 文案模式
         if type == 2:
@@ -955,7 +957,6 @@ class Audio:
         try:
             captions_config = self.config.get("captions")
 
-            Audio.mixer_normal.init()
             while True:
                 try:
                     # 从队列中获取音频文件路径 队列为空时阻塞等待
@@ -1102,7 +1103,6 @@ class Audio:
     async def only_play_copywriting(self):
         
         try:
-            Audio.mixer_copywriting.init()
 
             async def random_speed_and_play(audio_path):
                 """对音频进行变速和播放，内置延时，其实就是提取了公共部分

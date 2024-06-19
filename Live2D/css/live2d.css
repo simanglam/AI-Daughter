@@ -57,6 +57,7 @@ body{
     overflow-y: hidden;
     overflow-x: hidden;
     margin:0;
+    background-color: green;
 }
 
 .message {

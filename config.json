@@ -7,13 +7,13 @@
   "api_ip": "127.0.0.1",
   "api_port": 8082,
   "platform": "youtube",
-  "room_display_id": "M6HdC8Bs8OI",
+  "room_display_id": "grQm4CaKmRE",
   "chat_type": "chatgpt",
   "need_lang": "zh",
   "before_prompt": "请简要回复:",
   "after_prompt": "",
   "comment_template": {
-    "enable": false,
+    "enable": true,
     "copywriting": "{username}说：{comment}"
   },
   "comment_log_type": "回答",
@@ -36,7 +36,7 @@
     "text_split_enable": true,
     "normal_interval": 0.5,
     "out_path": "out",
-    "player": "audio_player"
+    "player": "pygame"
   },
   "audio_player": {
     "api_ip_port": "http://127.0.0.1:5600"
@@ -76,8 +76,8 @@
     ]
   },
   "read_comment": {
-    "enable": true,
-    "read_username_enable": true,
+    "enable": false,
+    "read_username_enable": false,
     "username_max_len": 10,
     "voice_change": false,
     "read_username_copywriting": [
@@ -95,7 +95,7 @@
       "#"
     ],
     "badwords": {
-      "enable": true,
+      "enable": false,
       "discard": false,
       "path": "data/badwords.txt",
       "bad_pinyin_path": "data/违禁拼音.txt",
@@ -404,14 +404,14 @@
   },
   "local_qa": {
     "text": {
-      "enable": false,
+      "enable": true,
       "type": "json",
-      "file_path": "data/本地问答库.json",
+      "file_path": "data/ans.json",
       "similarity": 0.8,
       "username_max_len": 10
     },
     "audio": {
-      "enable": false,
+      "enable": true,
       "file_path": "out/本地问答音频/",
       "similarity": 0.5
     }
@@ -1162,7 +1162,7 @@
       "local_audio_path": "data/异常报警/platform"
     },
     "llm": {
-      "enable": false,
+      "enable": true,
       "start_alarm_error_num": 5,
       "auto_restart_error_num": 10,
       "type": "local_audio",
@@ -1211,7 +1211,7 @@
     ]
   },
   "assistant_anchor": {
-    "enable": false,
+    "enable": true,
     "username": "助播",
     "audio_synthesis_type": "edge-tts",
     "type": [
@@ -1226,7 +1226,7 @@
     ],
     "local_qa": {
       "text": {
-        "enable": false,
+        "enable": true,
         "format": "json",
         "file_path": "data/本地问答库-助播.json",
         "similarity": 0.8
